@@ -9,14 +9,18 @@ function getIRIParameterValue(requestedKey) {
             return value;
         }
     }
+    return null;
 }
 
 let username = decodeURI(getIRIParameterValue('username'));
-if((typeof username == 'undefined') || (username === null)) {
+if((typeof username == 'undefined') || (username === null) || (username === 'null')) {
     username = "Anonymous_"+Math.floor(Math.random()*1000);
 }
 
-let chatRoom = 'Lobby';
+let chatRoom = decodeURI(getIRIParameterValue('game_id'));
+if((typeof chatRoom == 'undefined') || (chatRoom === null) || (chatRoom === 'null')) {
+    chatRoom = 'Lobby';
+}
 
 /* Set up the socket.io connection the server */
 let socket = io();
@@ -33,8 +37,23 @@ socket.on('join_room_response', (payload) => {
         console.log(payload.message);
         return;
     }
-    let newString = '<p class=\'join_room_response\'>'+payload.username+' joined the '+payload.room+'. (There are '+payload.count+' users in this room)</p>';
-    $('#messages').prepend(newString);
+    let newHTML = '<p class=\'join_room_response\'>'+payload.username+' joined the '+payload.room+'. (There are '+payload.count+' users in this room)</p>';
+    let newNode = $(newHTML);
+    newNode.hide();
+    $('#messages').prepend(newNode);
+    newNode.show("fade", 500);
+})
+
+socket.on('player_disconnected', (payload) => {
+    if((typeof payload == 'undefined') || (payload === null)) {
+        console.log('Server did not send a payload');
+        return;
+    }
+    let newHTML = '<p class=\'left_room_response\'>'+payload.username+' left the '+payload.room+'. (There are '+payload.count+' users in this room)</p>';
+    let newNode = $(newHTML);
+    newNode.hide();
+    $('#messages').prepend(newNode);
+    newNode.show("fade", 500);
 })
 
 function sendChatMessage() {
@@ -44,6 +63,7 @@ function sendChatMessage() {
     request.message = $('#chatMessage').val();
     console.log('**** Client log message, sending \'send_chat_message\' command: '+JSON.stringify(request));
     socket.emit('send_chat_message', request);
+    $('#chatMessage').val(""); 
 }
 
 socket.on('send_chat_message_response', (payload) => {
@@ -55,8 +75,12 @@ socket.on('send_chat_message_response', (payload) => {
         console.log(payload.message);
         return;
     }
-    let newString = '<p class=\'chat_message\'><b>'+payload.username+'</b>: '+payload.message+'</p>';
-    $('#messages').prepend(newString);
+    let newHTML = '<p class=\'chat_message\'><b>'+payload.username+'</b>: '+payload.message+'</p>';
+    let newNode = $(newHTML);
+    newNode.hide();
+
+    $('#messages').prepend(newNode);
+    newNode.show("fade", 500);
 })
 
 /* Request to join the chat room*/
@@ -66,6 +90,16 @@ $( () => {
     request.username = username;
     console.log('**** Client log message, sending \'join_room\' command: '+JSON.stringify(request));
     socket.emit('join_room', request);
+
+    $('#lobbyTitle').html(username+"'s Lobby");
+
+    $('#chatMessage').keypress( function (e) {
+        let key = e.which;
+        if( key == 13) { 
+            $('button[id = chatButton]').click();
+            return false
+         }
+        })
 });
 
 
