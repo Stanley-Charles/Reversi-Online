@@ -10,14 +10,18 @@
     <style>
         .headerrow {
             background-color: darkseagreen;
+            
         }
-        .join_room_response {
-            background-color: rgb(186, 190, 186);
-            margin: 1px 1px 1px 10px; 
+        #messagePane {
+            background-color: rgb(224, 243, 224);
+        }
+        .join_room_response, .left_room_response {
+            background-color: rgb(247, 247, 247);
         }
         .chat_message {
             font-size:125%;
-            color: rgb(145, 0, 0)
+            margin: 1px 1px 1px 1px;
+            color: rgb(0, 0, 0)
         }
     </style>
     <title>Reversi: Lobby</title>
@@ -31,19 +35,25 @@
         </div>
         <div class = "row m-3">
             <div class = "col">
-                <div class = "row align-items-center justify-content-center m-3">
-                    <div class = "col-8">
+                <div class = "row align-items-start justify-content-center">
+                    <div class = "col-md-4">
+                        <h4>Players</h4>
+                        <div id="players" class="align-items-end text-right m-3">
+
+                        </div>
+                    </div>
+                    <div class = "col-md-8" id="messagePane">
+                        <div>
+                            <h4>Messages</h4>
+                        </div>
                         <div class="input-group">
                             <input type="text" class="form-control text-nowrap" id="chatMessage" placeholder="Enter your message"
                             aria-label="enter your message to send to the chat room"/>
                             <button type = "submit" class = "btn btn-primary text-nowrap" id="chatButton"
                             onclick="sendChatMessage()">Send</button> 
                         </div>
+                        <div id="messages"></div>
                     </div>
-                </div>
-                <h4>Messages</h4>
-                <div id="messages">
-
                 </div>
             </div>
         </div>
