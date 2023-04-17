@@ -42,15 +42,31 @@ function makeInviteButton(socket_id) {
     return newNode;
 }
 
-function makeInvitedButton() {
+function makeInvitedButton(socket_id) {
     let newHTML = "<button type='button' class='btn btn-primary'>Invited</button>";
     let newNode = $(newHTML); 
+    newNode.click(() => {
+        let payload = {
+            requested_user: socket_id
+        }
+        console.log('**** Client log message, sending \'uninvite\' command: '+JSON.stringify(payload));
+        socket.emit('uninvite', payload);
+    }
+    ); 
     return newNode;
 }
 
-function makePlayButton() {
+function makePlayButton(socket_id) {
     let newHTML = "<button type='button' class='btn btn-success'>Play</button>";
     let newNode = $(newHTML); 
+    newNode.click(() => {
+        let payload = {
+            requested_user: socket_id
+        }
+        console.log('**** Client log message, sending \'game_start\' command: '+JSON.stringify(payload));
+        socket.emit('game_start', payload);
+    }
+    ); 
     return newNode;
 }
 
@@ -68,8 +84,8 @@ socket.on('invite_response', (payload) => {
     if(payload.result === 'fail') {
         console.log(payload.message);
         return;
-    }
-    let newNode = makeInvitedButton();
+    } 
+    let newNode = makeInvitedButton(payload.socket_id);
     $('.socket_'+payload.socket_id+' button').replaceWith(newNode);
 })
 
@@ -82,9 +98,39 @@ socket.on('invited', (payload) => {
         console.log(payload.message);
         return;
     }
-    let newNode = makePlayButton();
+    let newNode = makePlayButton(payload.socket_id);
     $('.socket_'+payload.socket_id+' button').replaceWith(newNode);
 })
+
+socket.on('uninvited', (payload) => {
+    if((typeof payload == 'undefined') || (payload === null)) {
+        console.log('Server did not send a payload');
+        return;
+    }
+    if(payload.result === 'fail') {
+        console.log(payload.message);
+        return; 
+    }
+    let newNode = makeInviteButton(payload.socket_id);
+    $('.socket_'+payload.socket_id+' button').replaceWith(newNode);
+})
+
+
+socket.on('game_start_response', (payload) => {
+    if((typeof payload == 'undefined') || (payload === null)) {
+        console.log('Server did not send a payload');
+        return;
+    }
+    if(payload.result === 'fail') {
+        console.log(payload.message);
+        return; 
+    }
+    let newNode = makeStartGameButton();
+    $('.socket_'+payload.socket_id+' button').replaceWith(newNode);
+    /* Jump to the game page */
+    window.location.href = 'game.html?username='+username+'&game_id='+payload.game_id;
+})
+
 
 socket.on('join_room_response', (payload) => {
     if((typeof payload == 'undefined') || (payload === null)) {
@@ -195,6 +241,98 @@ socket.on('send_chat_message_response', (payload) => {
 
     $('#messages').prepend(newNode);
     newNode.show("fade", 500);
+})
+
+let old_board = [
+    ['?', '?', '?', '?', '?', '?', '?', '?'],
+    ['?', '?', '?', '?', '?', '?', '?', '?'],
+    ['?', '?', '?', '?', '?', '?', '?', '?'],
+    ['?', '?', '?', '?', '?', '?', '?', '?'],
+    ['?', '?', '?', '?', '?', '?', '?', '?'],
+    ['?', '?', '?', '?', '?', '?', '?', '?'],
+    ['?', '?', '?', '?', '?', '?', '?', '?'],
+    ['?', '?', '?', '?', '?', '?', '?', '?']
+];
+
+socket.on('game_update', (payload) => {
+    if((typeof payload == 'undefined') || (payload === null)) {
+        console.log('Server did not send a payload');
+        return;
+    }
+    if(payload.result === 'fail') {
+        console.log(payload.message);
+        return;
+    }
+
+    let board = payload.game.board;
+    if((typeof board == 'undefined') || (board === null)) {
+        console.log('Server did not send a valid board to display');
+        return;
+    }
+    /* Update colors */
+
+    /* Animate changes to the board */
+    for(let row = 0; row < 8; row++) {
+        for(let column = 0; column < 8; column++) {
+            /* Check to see if the server changed any spaces on the board */
+            if(old_board[row][column] !== board[row][column]) {
+                let graphic = "";
+                let altTag = "";
+                if((old_board[row][column] === '?') && (board[row][column] === ' ')) {
+                    graphic = "empty.gif";
+                    altTag = "empty space";
+                }
+                else if((old_board[row][column] === '?') && (board[row][column] === ' ')) {
+                    graphic = "empty.gif";
+                    altTag = "empty space";
+                }
+                else if((old_board[row][column] === '?') && (board[row][column] === 'w')) {
+                    graphic = "empty_to_white.gif";
+                    altTag = "white space";
+                }
+                else if((old_board[row][column] === '?') && (board[row][column] === 'b')) {
+                    graphic = "empty_to_black.gif";
+                    altTag = "black space";
+                }
+
+                else if((old_board[row][column] === ' ') && (board[row][column] === 'w')) {
+                    graphic = "empty_to_white.gif";
+                    altTag = "white space";
+                }
+                else if((old_board[row][column] === ' ') && (board[row][column] === 'b')) {
+                    graphic = "empty_to_black.gif";
+                    altTag = "black space";
+                }
+                else if((old_board[row][column] === 'w') && (board[row][column] === ' ')) {
+                    graphic = "white_to_empty.gif";
+                    altTag = "empty space";
+                }
+                else if((old_board[row][column] === 'b') && (board[row][column] === ' ')) {
+                    graphic = "black_to_empty.gif";
+                    altTag = "empty space";
+                }
+                else if((old_board[row][column] === 'w') && (board[row][column] === 'b')) {
+                    graphic = "white_to_black.gif";
+                    altTag = "black space";
+                }
+                else if((old_board[row][column] === 'b') && (board[row][column] === 'w')) {
+                    graphic = "black_to_white.gif";
+                    altTag = "white space";
+                }
+                else  {
+                    graphic = "assets/images/error.gif";
+                    altTag = "error space";
+                }
+
+                const t = Date.now();
+                $('#' + row + '_' + column).html('<img class="img-fluid" src="assets/images/' + graphic + '?time=' + t + '" alt="' + altTag + '"/>');
+
+
+            }
+        }
+    }
+    old_board = board;
+    
 })
 
 /* Request to join the chat room*/
