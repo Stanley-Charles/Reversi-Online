@@ -284,7 +284,31 @@ socket.on('game_update', (payload) => {
         return;
     }
 
-    $("#my_color").html('<h3 id="my_color">I am '+ my_color+'</h3>');
+    if(my_color === 'white') {
+        $("#my_color").html('<h3 id="my_color">Your pieces are white</h3>');
+
+    }
+    else if (my_color === 'black') {
+        $("#my_color").html('<h3 id="my_color">Your pieces are black</h3>');
+
+    }
+    else {
+        $("#my_color").html('<h3 id="my_color">Error: Invalid color</h3>');
+
+    }
+
+    if(payload.game.whose_turn === 'white') {
+        $("#my_color").append('<h4>It is White\'s turn</h4>');
+
+    }
+    else if (payload.game.whose_turn === 'black') {
+        $("#my_color").append('<h4>It is Black\'s turn</h4>');
+
+    }
+    else {
+        $("#my_color").append('<h4>Error: Invalid turnr</h4>');
+
+    }
 
     let whitesum = 0;
     let blacksum = 0;
@@ -350,27 +374,29 @@ socket.on('game_update', (payload) => {
 
                 const t = Date.now();
                 $('#' + row + '_' + column).html('<img class="img-fluid" src="assets/images/' + graphic + '?time=' + t + '" alt="' + altTag + '"/>');
+            }    
+            /* Set up interactivity */  
                 $('#' + row + '_' + column).off('click');
-                if(board[row][column] === ' ') {
-                    $('#' + row + '_' + column).addClass('hovered_over');
-                    $('#' + row + '_' + column).click(((r,c) => {
-                        return( () => {
-                            let payload = {
-                                row: r,
-                                column: c,
-                                color: my_color
-                            };
-                            console.log('**** Client log message, sending \'play_token\' command: '+JSON.stringify(payload));
-                            socket.emit('play_token', payload);
-                        });
-                    })(row, column));
-                }
-                else {
-                    $('#' + row + '_' + column).removeClass('hovered_over');
+                $('#' + row + '_' + column).removeClass('hovered_over');
+                if(payload.game.whose_turn === my_color) { 
+                    if(payload.game.legal_moves[row][column] === my_color.substr(0,1)) {
+                        $('#' + row + '_' + column).addClass('hovered_over');
+                        $('#' + row + '_' + column).click(((r,c) => {
+                            return( () => {
+                                let payload = {
+                                    row: r,
+                                    column: c,
+                                    color: my_color
+                                };
+                                console.log('**** Client log message, sending \'play_token\' command: '+JSON.stringify(payload));
+                                socket.emit('play_token', payload);
+                            });
+                        })(row, column));
+                    }
 
                 }
+            
                     
-            }
         }
     }
     $("#whitesum").html(whitesum);
@@ -396,6 +422,7 @@ socket.on('game_over', (payload) => {
     }
     if(payload.result === 'fail') {
         console.log(payload.message);
+        alert(payload.message);
         return;
     }
 
