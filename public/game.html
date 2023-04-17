@@ -8,7 +8,40 @@
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <title>Reversi</title>
-    <link rel = 'stylesheet' href='assets/css/game.css' />
+    <style>
+        body {
+            background-color: rgb(177, 224, 177);
+        }
+
+        .headerrow, #messagePane {
+            background-color: rgb(224, 243, 224);
+        }
+        .join_room_response, .left_room_response {
+            background-color: rgb(247, 247, 247);
+        }
+        .chat_message {
+            font-size:125%;
+            margin: 1px 1px 1px 1px;
+            color: rgb(0, 0, 0)
+        }
+
+        table#game_board {
+            border: 4px solid black;
+            margin: 0px;
+            padding: 0px;
+        }
+
+        table#game_board td {
+            background-color: rgb(83, 168, 83);
+            border: 1px solid black;
+            margin: 0px;
+            padding: 0px;
+        }
+
+td.hovered_over:hover {
+    background-image: url('/assets/images/hover.gif');
+}
+    </style>
   </head>
   <body>
     <div class="container-fluid">
